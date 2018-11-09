@@ -2,8 +2,9 @@
 dependencies {
     compile project(':digdag-spi')
     compile project(':digdag-plugin-utils')
-    testCompile project(':digdag-core')
-
     // using the recommended newer gcloud java library: https://github.com/googleapis/google-api-java-client#library-maintenance
     compile(group: 'com.google.cloud', name: 'google-cloud-storage', version: '1.52.0') { exclude group: 'com.google.guava', module: 'guava-jdk5' }
+
+    testCompile project(':digdag-core')
+    testCompile 'com.google.cloud:google-cloud-nio:0.70.0-alpha'
 }
