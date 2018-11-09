@@ -1,43 +1,63 @@
 package io.digdag.storage.gcs;
 
-import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelperWithMoreFields;
+import com.google.common.base.Strings;
+import io.digdag.client.config.Config;
+import io.digdag.client.config.ConfigFactory;
 import io.digdag.spi.Storage;
 import io.digdag.spi.StorageObjectSummary;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
-import static io.digdag.core.storage.StorageManager.encodeHex;
-import static io.digdag.util.Md5CountInputStream.digestMd5;
+import static io.digdag.client.DigdagClient.objectMapper;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.Matchers.is;
 import static org.jboss.resteasy.plugins.providers.ProviderHelper.readString;
 import static org.junit.Assert.assertThat;
 
-public class GCSStorageTest {
-    private GCSStorage storage;
+@RunWith(Parameterized.class)
+public class GCSStorageTest
+{
+    private static final String GCS_TEST_SERVICE_ACCOUNT_KEY_FILENAME
+            = System.getenv("GCS_TEST_SERVICE_ACCOUNT_KEY_FILENAME");
+
+    private static final String GCS_TEST_BUCKET_NAME
+            = System.getenv("GCS_TEST_BUCKET_NAME");
+
+    private final GCSStorageFactory gcsStorageFactory;
+    private final Config config;
+
+    private Storage storage;
+
+    // Called for every value returned by storageFactories()
+    public GCSStorageTest(GCSStorageFactory storageFactory, Config config) {
+        this.gcsStorageFactory = storageFactory;
+        this.config = config;
+    }
+
+    @Parameterized.Parameters(name = "{0}")
+    public static Collection<Object[]> storageFactories() {
+        List<Object[]> factoriesAndConfigs = new ArrayList<>();
+
+        if (!Strings.isNullOrEmpty(GCS_TEST_SERVICE_ACCOUNT_KEY_FILENAME)) {
+            Config remoteConfig = createConfig(GCS_TEST_BUCKET_NAME, GCS_TEST_SERVICE_ACCOUNT_KEY_FILENAME);
+            factoriesAndConfigs.add(new Object[]{new GCSStorageFactory(), remoteConfig});
+        }
+
+        Config localConfig = createConfig("localbucket", null);
+        factoriesAndConfigs.add(new Object[]{new LocalGCSStorageFactory(), localConfig});
+
+        return factoriesAndConfigs;
+    }
 
     @Before
     public void setUp()
     {
-         com.google.cloud.storage.Storage gStorage = LocalStorageHelperWithMoreFields.getOptions().toBuilder().build().getService();
-         storage = new GCSStorage(null, gStorage, "bucketName");
-
-         //todo: test retries for all methods, test with real GCS server
-    }
-
-    @Test
-    public void putReturnsMd5AsEtag()
-            throws Exception
-    {
-        String checksum1 = storage.put("key1", 10, contents("0123456789"));
-        String checksum2 = storage.put("key2", 5, contents("01234"));
-        assertThat(checksum1, is(md5hex("0123456789")));
-        assertThat(checksum2, is(md5hex("01234")));
+        this.storage = gcsStorageFactory.newStorage(config);
     }
 
     @Test
@@ -61,7 +81,7 @@ public class GCSStorageTest {
         storage.put("key/file/3", 2, contents("12"));
 
         List<StorageObjectSummary> all = new ArrayList<>();
-        storage.list("key", all::addAll);
+        storage.list("key/", all::addAll);
         all.sort(Comparator.comparing(StorageObjectSummary::getKey));
 
         assertThat(all.size(), is(3));
@@ -95,13 +115,10 @@ public class GCSStorageTest {
         return () -> new ByteArrayInputStream(data.getBytes(UTF_8));
     }
 
-    private static String md5hex(String data)
-    {
-        return md5hex(data.getBytes(UTF_8));
-    }
-
-    private static String md5hex(byte[] data)
-    {
-        return encodeHex(digestMd5(data));
+    private static Config createConfig(String bucket, String serviceAccountKeyFilename) {
+        ConfigFactory cf = new ConfigFactory(objectMapper());
+        return cf.create()
+                .set("bucket", bucket)
+                .set("service-account-key-filename", serviceAccountKeyFilename);
     }
 }

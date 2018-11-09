@@ -7,4 +7,5 @@ dependencies {
 
     testCompile project(':digdag-core')
     testCompile 'com.google.cloud:google-cloud-nio:0.70.0-alpha'
+    testCompile 'ch.qos.logback:logback-classic:1.1.5'
 }

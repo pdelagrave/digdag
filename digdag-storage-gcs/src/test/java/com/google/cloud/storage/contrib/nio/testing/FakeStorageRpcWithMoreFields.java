@@ -36,6 +36,11 @@ public class FakeStorageRpcWithMoreFields extends FakeStorageRpc {
         // The more fields:
         object.setSize(BigInteger.valueOf(bytes.length));
         object.setUpdated(new DateTime(Instant.now().getEpochSecond()));
+
+        // Using the md5 as the etag for now (although the real GCS isn't using that)
+        // As long as the etag is always different when the content if different we're ok
+        // https://cloud.google.com/storage/docs/hashes-etags
+        // https://tools.ietf.org/html/rfc7232#section-2.3
         object.setEtag(md5hex(bytes));
 
         return super.create(object, new ByteArrayInputStream(bytes), options);
