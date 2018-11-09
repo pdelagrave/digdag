@@ -11,7 +11,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.ByteArrayInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 import static io.digdag.client.DigdagClient.objectMapper;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -34,13 +37,15 @@ public class GCSStorageTest
     private Storage storage;
 
     // Called for every value returned by storageFactories()
-    public GCSStorageTest(GCSStorageFactory storageFactory, Config config) {
+    public GCSStorageTest(GCSStorageFactory storageFactory, Config config)
+    {
         this.gcsStorageFactory = storageFactory;
         this.config = config;
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static Collection<Object[]> storageFactories() {
+    public static Collection<Object[]> storageFactories()
+    {
         List<Object[]> factoriesAndConfigs = new ArrayList<>();
 
         if (!Strings.isNullOrEmpty(GCS_TEST_SERVICE_ACCOUNT_KEY_FILENAME)) {
@@ -115,7 +120,8 @@ public class GCSStorageTest
         return () -> new ByteArrayInputStream(data.getBytes(UTF_8));
     }
 
-    private static Config createConfig(String bucket, String serviceAccountKeyFilename) {
+    private static Config createConfig(String bucket, String serviceAccountKeyFilename)
+    {
         ConfigFactory cf = new ConfigFactory(objectMapper());
         return cf.create()
                 .set("bucket", bucket)

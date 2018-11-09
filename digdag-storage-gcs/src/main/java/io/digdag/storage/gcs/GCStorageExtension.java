@@ -1,13 +1,14 @@
 package io.digdag.storage.gcs;
 
-import java.util.List;
-import java.util.Arrays;
-import com.google.inject.Module;
 import com.google.inject.Binder;
+import com.google.inject.Module;
 import com.google.inject.Scopes;
 import com.google.inject.multibindings.Multibinder;
 import io.digdag.spi.Extension;
 import io.digdag.spi.StorageFactory;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class GCStorageExtension
         implements Extension
@@ -19,7 +20,7 @@ public class GCStorageExtension
     }
 
     public static class GCSStorageModule
-        implements Module
+            implements Module
     {
         @Override
         public void configure(Binder binder)

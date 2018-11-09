@@ -15,7 +15,9 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.Map;
 
-public class FakeStorageRpcWithMoreFields extends FakeStorageRpc {
+public class FakeStorageRpcWithMoreFields
+        extends FakeStorageRpc
+{
     /**
      * @param throwIfOption if true, we throw when given any option
      */

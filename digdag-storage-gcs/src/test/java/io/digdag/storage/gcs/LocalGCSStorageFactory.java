@@ -5,7 +5,8 @@ import com.google.cloud.storage.contrib.nio.testing.LocalStorageHelperWithMoreFi
 import io.digdag.client.config.Config;
 import io.digdag.spi.Storage;
 
-public class LocalGCSStorageFactory extends GCSStorageFactory
+public class LocalGCSStorageFactory
+        extends GCSStorageFactory
 {
     @Override
     public Storage newStorage(Config config)

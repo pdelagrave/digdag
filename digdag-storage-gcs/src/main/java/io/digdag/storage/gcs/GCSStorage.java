@@ -3,6 +3,7 @@ package io.digdag.storage.gcs;
 import com.google.api.gax.paging.Page;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
+import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.common.base.Throwables;
 import io.digdag.client.config.Config;
 import io.digdag.spi.Storage;
@@ -17,35 +18,39 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.util.Collections;
-import com.google.cloud.storage.Storage.BlobListOption;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
 
 //TODO: implement and test retries for all methods, test with real GCS server
 public class GCSStorage
-        implements Storage {
+        implements Storage
+{
     private static Logger logger = LoggerFactory.getLogger(GCSStorage.class);
 
     private final com.google.cloud.storage.Storage gStorage;
     private final String bucket;
 
-    public GCSStorage(final Config config, com.google.cloud.storage.Storage gStorage, String bucket) {
+    public GCSStorage(final Config config, com.google.cloud.storage.Storage gStorage, String bucket)
+    {
         checkArgument(!isNullOrEmpty(bucket), "bucket is null or empty");
         this.gStorage = gStorage;
         this.bucket = bucket;
     }
 
-    private RetryExecutor uploadRetryExecutor() {
+    private RetryExecutor uploadRetryExecutor()
+    {
         return RetryExecutor.retryExecutor();
     }
 
-    private RetryExecutor getRetryExecutor() {
+    private RetryExecutor getRetryExecutor()
+    {
         return RetryExecutor.retryExecutor();
     }
 
     @Override
-    public StorageObject open(String key) {
+    public StorageObject open(String key)
+    {
         checkArgument(key != null, "key is null");
 
         Blob blob = gStorage.get(bucket, key);
@@ -54,7 +59,9 @@ public class GCSStorage
     }
 
     @Override
-    public String put(String key, long contentLength, UploadStreamProvider payload) throws IOException {
+    public String put(String key, long contentLength, UploadStreamProvider payload)
+            throws IOException
+    {
         checkArgument(key != null, "key is null");
 
         BlobInfo blobInfo = BlobInfo.newBuilder(bucket, key).build();
@@ -91,7 +98,8 @@ public class GCSStorage
     }
 
     @Override
-    public void list(String keyPrefix, FileListing callback) {
+    public void list(String keyPrefix, FileListing callback)
+    {
         Page<Blob> blobs = gStorage.list(bucket, BlobListOption.prefix(keyPrefix));
         for (Blob blob : blobs.iterateAll()) {
             callback.accept(Collections.singletonList(
